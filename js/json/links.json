@@ -1,0 +1,36 @@
+﻿{
+  "formId": "E67DC2AF-CB91-436A-BF99-236FF558F594",
+  "formName": "frmLinks",
+  "FormFields": [
+    {
+      "name": "Type",
+      "type": "select",
+      "visible": true,
+      "items": [
+        {
+          "name": "Link",
+          "value": "link"
+        },
+        {
+          "name": "Header",
+          "value" : "header"
+        }
+      ]
+    },
+    {
+      "name": "Name",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "name": "URL",
+      "type": "text",
+      "visible": true
+    },
+    {
+        "name": "orderby",
+        "type": "number",
+        "visible": true
+    }
+  ]
+}

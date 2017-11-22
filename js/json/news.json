@@ -1,0 +1,26 @@
+﻿{
+  "formId": "8B386C67-4A6A-4DCA-A1FD-3E57ED35B335",
+  "formName": "frmNews",
+  "FormFields": [
+    {
+      "name": "Name",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "name": "URL",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "name": "Description",
+      "type": "textarea",
+      "visible": true
+    },
+    {
+      "name": "",
+      "type": "descriptionButton",
+      "visible": true
+    }
+  ]
+}

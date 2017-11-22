@@ -1,0 +1,110 @@
+﻿h1,h2,h3,h4,h5,h6,
+a.list-group-item-custom{
+     padding: 10px;
+}
+.h1,.h2,.h3,h1,h2,h3{
+    margin-top: 0px !important;
+}
+.form-inline{
+    margin-bottom:15px;
+}
+a.list-group-item-custom{
+    font-size: 13px !important;
+}
+h3{
+    font-size: 14px !important;
+}
+a.list-group-item {
+    border: none; 
+}
+.wrap{
+    width: auto;
+    margin: 0 auto;
+
+}
+.cont_col{
+    width: 32.33333%;
+    float: left;
+
+}
+.calendar{
+    width: 100%;
+    height: 350px;
+}
+.disabled{
+     pointer-events:none; 
+    opacity:0.6;   
+}
+.blur {
+   color: transparent;
+   opacity:0.6;   
+}
+.selectedDoc{
+    background-color: #e4e4e4;
+}
+#settingIcon{
+    font-size: 20px;
+    margin-right:10px;
+    color: #3a5c7a ;
+}
+.navbar .dropdown-menu {
+    left: inherit;
+    right: 0% !important;
+}
+
+#adminContent .jsgrid-grid-header, #adminContent .jsgrid-grid-body,
+#newsGrid .jsgrid-grid-header, #newsGrid .jsgrid-grid-body{
+    overflow-x: auto;
+    overflow-y: auto; 
+}
+
+.ui-dialog .ui-dialog-titlebar-close{
+    background-image: url(/images/close_button.png) !important;
+    /*visibility:hidden;*/
+}
+#documentContainer .nav>li{
+    padding: 0px 5px;
+}
+.documentContainer{
+    padding-top: 10px;
+    padding-left: 20px;
+}
+.documentContainer .list-group-item{
+    padding-left: 20px;
+}
+.documentContainer nav.container-fluid{
+    padding-left: 0px;
+}
+
+#externalLink, #myFavIcon {
+    float: right;
+    /* padding: 10px;
+    font-size: 20px;
+    color: #3a5c7a;*/
+    color: white;
+}
+#modalClose{
+    padding: 10px;
+    color: #ffffff;
+}
+.close{
+    opacity: 1!important;
+}
+#favModal{
+    /*top: 22%;
+    left: 66%;*/
+}
+.favbtn{
+    margin: 5px;
+}
+#favModal-dialog{
+    width: 480px;
+}
+.modal-backdrop.in{
+    background: #fbfbfb;
+    opacity: .3;
+}
+
+#directoryContent-nav{
+    margin-top: 15px;
+}

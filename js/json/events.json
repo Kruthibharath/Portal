@@ -1,0 +1,32 @@
+﻿{
+  "formId": "1F40679D-7534-450F-BC87-2BBAB5136BB9",
+  "formName": "frmEvents",
+  "FormFields":
+  [
+    {
+      "name": "Name",
+      "type": "text",
+      "visible": "true"
+    },
+    {
+      "name": "Date",
+      "type": "myDateField",
+      "visible": "true"
+    },
+    {
+      "name": "Description",
+      "type": "text",
+      "visible": "true"
+    },
+    {
+      "name": "StartTime",
+      "type": "myTimeField",
+      "visible": "true"
+    },
+    {
+      "name": "EndTime",
+      "type": "myTimeField",
+      "visible": "true"
+    }
+  ]
+}

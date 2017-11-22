@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="css/jquery/jquery-ui.min.css" rel="stylesheet" />
+    <link href="css/jquery/jquery-ui.theme.min.css" rel="stylesheet" />
+    <script src="js/jquery/jquery-3.2.1.min.js"></script>
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <script src="js/jquery/jquery-ui.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" id="themedCSS" type="text/css" href="css/default.css">
+    <link rel="stylesheet" href="css/portalCustomStyle.css">
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css">
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <script src="js/tinymce/tinymce.min.js"></script>
+    <script src="js/tinymce/jquery.tinymce.min.js"></script>
+
+    
+   
+    <style>
+        .ui-widget *, .ui-widget input, .ui-widget select, .ui-widget button {
+            font-family: 'Helvetica Neue Light', 'Open Sans', Helvetica;
+            font-size: 14px;
+            font-weight: 300 !important;
+        }
+        .news-form-field input {
+            width: 350px;
+            float: none;
+        }
+        .news-form-field {
+            margin: 30px 0;
+        }
+        .news-form-field:first-child {
+            margin-top: 10px;
+        }
+        .news-form-field:last-child {
+            margin-bottom: 10px;
+        }
+        .news-form-field button {
+            display: block;
+            width: 100px;
+            margin: 0 auto;
+        }
+        input.error, select.error {
+            border: 1px solid #ff9999;
+            background: #ffeeee;
+        }
+        label.error {
+           /* float: right;
+            margin-left: 100px;*/
+            font-size: .8em;
+            color: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-default">
+        <div class="">
+            <a class="navbar-brand" rel="home" href="/" title="App Portal - Homepage">
+                <img id="logo" alt="Portal" style="" src="images/logo.png" />
+            </a>
+        </div>
+        <div class="pull-right" style="padding:12px 25px 0px 0px;">
+            <button id="back" class="btn btn-primary" type="button">Back</button>
+        </div>
+    </nav>
+    <div class="container-fluid" style="display:none;">
+        <span><label style="padding:10px;">Manage the News Data</label></span>
+        <div class="form-group form-inline pull-right">
+            <label for="team"> &nbsp; Select the Team: </label>
+            <select class="form-control" id="team">
+                <option value="s">Team</option>
+            </select>
+        </div>
+        <div id="newsGrid"></div>
+    </div>
+    <div id="newsDialog">
+        <form id="newsForm">
+            <div class="news-form-field">
+                <label for="name">Name:</label>
+                <input id="name" name="name" type="text" style="text-align:left"/>
+            </div>
+            <div class="form-group" style="display:flex;">
+                <label for="url">Type:</label>
+                <div style="padding-left:10px;">
+                    <label class="radio-inline">
+                        <input type="radio" id="radio1" name="radioGroup" value="url" />URL
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" id="radio2" name="radioGroup" value="html" />HTML
+                    </label>
+                </div>
+            </div>
+            <div class="news-form-field">
+                <label for="url">URL:</label>
+                <input id="url" name="url" type="text" style="text-align:left" />
+            </div>
+            <div class="details-form-field">
+                <label for="description">HTML:</label>
+                <textarea id="description" name="description"></textarea>
+            </div>
+            <div class="details-form-field">
+                <button type="submit" id="save">Save</button>
+                <button type="button" id="dialog_close" data-dismiss="modal">Close</button>
+            </div>
+            <div id="attachDialog" title="Attach docs">
+                <div id="documentContainer" style="display:none;"></div>
+            </div>
+        </form>
+    </div>
+    <div id="noAccess" title="No access to the content">You don't have team admin access</div>
+    <script>
+        $(document).ready(function () {
+            $('#back').on('click', function (e) {
+                window.location.href = 'admin.html';
+                e.preventDefault();
+            });
+            checkUserRoles();
+        });
+        function checkUserRoles() {
+            $('#noAccess').dialog({
+                modal: true,
+                resizable: false,
+                autoOpen: false,
+                draggable:false,
+                closeOnEscape: false,
+                buttons: [
+                     {
+                         text: "OK", type: "submit", click: function (e) {
+                             window.location.href = 'index.html';
+                         }
+                     }
+                ]
+            });
+            AjaxGetMethod("Account/User",
+             function (data) {
+                 console.log(data);
+                 if (data.Roles.length > 0) {
+                     $.each(data.Roles, function (i, e) {
+                         var roleName = e.Name;
+                         roleName = roleName.toLowerCase();
+                         if (roleName === 'content admin' || roleName === 'team admin') {
+                             if (roleName === 'content admin') {
+                                 $('#noAccess').dialog('close');
+                                 $('.container-fluid').show();
+                                 loadTeams();
+                             }
+                         } else {
+                            $('#noAccess').dialog('open');
+                         }
+                     });
+                 } else {   
+                     $('#noAccess').dialog('open');
+                 }
+             }, function (data) { });
+        }
+        function loadTeams() {
+            AjaxGetMethod("Account/User", function (data) {
+                if (data.Groups !== undefined) {
+                    if (data.Groups.length > 0) {
+                        $.each(data.Groups, function (i, e) {
+                            $("#team").append("<option value='" + e.GroupId + "'>" + e.Name + "</option>");
+                        });
+                    }
+                }
+            }, function (data) { });
+            //AjaxGetMethod("Account/Groups",
+            //    function (data) {
+            //        if (data !== undefined) {
+            //            for (i in data) {
+            //                $("#team").append("<option>" + data[i].Name + "</option>")
+            //            }
+            //        }
+            //    }, function (data) { });
+        }
+        $(function () {
+            tinymce.init({
+                selector: 'textarea',
+                branding: false,
+                height: 270,
+                menubar: false,
+                plugins: [
+                          'advlist autolink lists link image charmap print preview anchor',
+                          'searchreplace visualblocks code fullscreen',
+                          'insertdatetime media table contextmenu paste code'
+                ],
+                toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | attachdocs attachimg ',
+                toolbar_items_size: 'small',
+                allow_script_urls: true,
+                extended_valid_elements : 'img[class|src|alt|title|width|height|align|onmouseover|onmouseout|name|itemid|itemtype]',
+                setup: function (editor) {
+                    editor.addButton('attachdocs', {
+                        icon: true,
+                        image: '/images/docicons/attach1600.png',
+                        tooltip: 'Attach docs',
+                        onclick: function () {
+                            $("#attachDialog").dialog({
+                                modal: true,
+                                height: 550,
+                                width: 600,
+                                resizable:false,
+                                open: function () {
+                                    $("#documentContainer").show();
+                                    $("#documentContainer").DocumentUI({ToolBar:false});
+                                },
+                                buttons: [
+                                           {
+                                               text: "OK", type: "submit", click: function (e) {
+                                                   var opts = $("#documentContainer").DocumentUI("getOptions");
+                                                   e.stopPropagation();
+                                                   editor.insertContent('<a href="javascript:DownloadFileData(&#34;' + opts.selectedItem.ItemId + '&#34;,&#34;' + opts.selectedItem.ItemName + '&#34;)">' + opts.selectedItem.ItemName + '</a>');
+                                                   $(this).dialog("close");
+                                               },
+                                           },
+                                           {
+                                               text: "Close", click: function () {
+                                                   $(this).dialog("close");
+                                               }
+                                           }
+                                ]
+                            });
+                        }
+                    });
+                    editor.addButton('attachimg', {
+                        icon: true,
+                        image: '/images/docicons/images-attach.png',
+                        tooltip: 'Attach Images',
+                        onclick: function () {
+                            $("#attachDialog").dialog({
+                                modal: true,
+                                height: 550,
+                                width: 600,
+                                resizable: false,
+                                open: function () {
+                                    $("#documentContainer").show();
+                                    $("#documentContainer").DocumentUI({ ToolBar: false });
+                                },
+                                buttons: [
+                                           {
+                                               text: "OK", type: "submit", click: function (e) {
+                                                   var opts = $("#documentContainer").DocumentUI("getOptions");
+                                                   editor.insertContent('<img class="attachedImg" alt="image_attached" width="20px" height="20px" src="/images/docicons/icon-image.png" itemid = "' + opts.selectedItem.ItemId + '"/>');
+                                                   $(this).dialog("close");
+                                               },
+                                           },
+                                           {
+                                               text: "Close", click: function () {
+                                                   $(this).dialog("close");
+                                               }
+                                           }
+                                ]
+                            });
+                        }
+                    });
+
+                },
+            });
+
+            $("#dialog_close").on('click',function(e){
+                $("#newsDialog").dialog('close');
+                e.preventDefault();
+            });
+
+            //Enable-Disable URL input text and tinyMCE textarea based on radio buttons
+            $('input[type=radio]').click(function () {
+                if ($(this).val() === "url") {
+                    $("input[name='url']").prop("disabled", false);
+                    tinymce.activeEditor.getBody().setAttribute('contenteditable', false);
+                    tinymce.activeEditor.getBody().setAttribute("style", "background-color: #f5f5f5;");
+                } else {
+                    $("input[name='url']").prop("disabled", true);
+                    tinymce.activeEditor.getBody().setAttribute('contenteditable', true);
+                    tinymce.activeEditor.getBody().setAttribute("style", "background-color: #ffffff;");
+                }
+            });
+
+            $("#newsGrid").jsGrid({
+                height: "853px",
+                width: "100%",
+                editing: true,
+                autoload: true,
+                paging: true,
+                deleteConfirm: function(item) {
+                    return "The \"" + item.Name + "\" will be removed. Are you sure?";
+                },
+                rowClick: function(args) {
+                    showDetailsDialog("Edit", args.item);
+                },
+                controller: db,
+                fields: [
+                    { name: "Name", type: "text" },                 
+                    { name: "URL", type: "number" },
+                    { name: "HTML", type: "textarea"},
+                    {
+                        type: "control",
+                        modeSwitchButton: false,
+                        editButton: false,
+                        headerTemplate: function() {
+                            return $("<button>").attr("type", "button").text("Add")
+                                .on("click", function () {
+                                    var teamId = $("#team :selected").val();
+                                    if (teamId === "s") {
+                                        alert("Please select the team");
+                                        $("#newsDialog").dialog('close');
+                                        return false;
+                                    }
+                                    showDetailsDialog("Add", {});
+                                });
+                        }
+                    }
+                ]
+            });
+            $("#newsDialog").dialog({
+                autoOpen: false,
+                width: 600,
+                close: function () {
+                    //$("#newsForm").validate().resetForm();
+                    $("#newsForm").find(".error").removeClass("error");
+                }
+            });
+            $("#newsForm").validate({
+                rules: {
+                    name: "required"
+                    /*url: "required",
+                    description: "required"*/
+                },
+                messages: {
+                    name: "Please enter name"
+                    /*url: "Please enter valid url",
+                    description: "Please enter description (more than 10 chars)"*/
+                },
+                submitHandler: function () {
+                    formSubmitHandler();
+                }
+            });
+            var formSubmitHandler = $.noop;
+            var showDetailsDialog = function (dialogType, item) {
+                $("#name").val(item.Name);
+                $("#url").val(item.URL);
+                if (!(dialogType === "Add")) {
+                    $("#team").find('option:selected').removeAttr("selected");
+                    $("#team option[value='" + item.AccessObjectId + "']").attr('selected', 'selected');
+                    if(item.HTML){
+                        var desc = decodeURI(item.HTML);
+                        $("#description").val(tinyMCE.activeEditor.setContent(desc));
+                    }
+                } else {
+                    tinymce.activeEditor.getBody().setAttribute('contenteditable', false);
+                    $("#description").val(tinyMCE.activeEditor.setContent(""));
+                }
+
+                if (!(dialogType === "Add") && (($("#url").val() === "") || ($("#description").val() === ""))) {
+                    if ($("#url").val() === "") {
+                        $("input[name='url']").prop("disabled", true);
+                        tinymce.activeEditor.getBody().setAttribute('contenteditable', true);
+                        tinymce.activeEditor.getBody().setAttribute("style", "background-color: #ffffff;");
+                    } else {
+                        $("input[name='url']").prop("disabled", false);
+                        tinymce.activeEditor.getBody().setAttribute('contenteditable', false);
+                        tinymce.activeEditor.getBody().setAttribute("style", "background-color: #f5f5f5;");
+                    }
+                } else {
+                    $("input:radio[value='url']").prop("checked", false);
+                    $("input[name='url']").prop("disabled", true);
+                    $("input:radio[value='html']").prop("checked", false);
+                    tinymce.activeEditor.getBody().setAttribute('contenteditable', false);
+                    tinymce.activeEditor.getBody().setAttribute("style", "background-color: #f5f5f5;");
+                }
+
+                formSubmitHandler = function () {
+                   saveItem(item, dialogType === "Add");   
+                };
+
+                $("#newsDialog").dialog("option", "title", dialogType + " Content")
+                    .dialog("open");
+            };
+            var saveItem = function (item, isNew) {
+                $.extend(item, {
+                    Name: $("#name").val(),
+                    URL: $("#url").val(),
+                    HTML: tinyMCE.activeEditor.getContent()
+                    //HTML: encodeURI(tinyMCE.activeEditor.getContent())
+                });
+                $("#newsGrid").jsGrid(isNew ? "insertItem" : "updateItem", item);
+                $("#newsDialog").dialog("close");
+            };
+        }());
+    </script>
+</body>
+</html>

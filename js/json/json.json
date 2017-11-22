@@ -1,0 +1,30 @@
+﻿{
+  "news": [
+    {
+      "name": "Name",
+      "type": "text"
+    },
+    {
+      "name": "URL",
+      "type": "text"
+    },
+    {
+      "name": "Description",
+      "type": "text"
+    }
+  ],
+  "events":  [
+    {
+      "name": "Name",
+      "type": "text"
+    },
+    {
+      "name": "Date",
+      "type": "text"
+    },
+    {
+      "name": "Description",
+      "type": "text"
+    }
+  ]
+ }

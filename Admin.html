@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" id="themedCSS" type="text/css" href="css/default.css">
+    <link rel="stylesheet" href="css/portalCustomStyle.css">
+    <link href="css/jquery/jquery-ui.min.css" rel="stylesheet" />
+    <link href="css/jquery/jquery-ui.theme.min.css" rel="stylesheet" />
+    <script src="js/jquery/jquery-3.2.1.min.js"></script>
+    <script src="js/jquery/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css">
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.3/jquery.timepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.3/jquery.timepicker.min.js"></script>
+    <script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+
+</head>
+<body>
+    <nav class="navbar navbar-default">
+        <div class="">
+            <a class="navbar-brand" rel="home" href="/" title="App Portal - Homepage">
+                <img id="logo" alt="Portal" style="" src="images/logo.png" />
+            </a>
+        </div>
+        <div class="pull-right" style="padding:12px 25px 0px 0px;">
+            <button id="home" class="btn btn-primary" type="button">Home</button>
+        </div>
+    </nav>
+    <div class="container-fluid" style="display:none;"> 
+        <div class="row">
+            <div class="col-md-2 col-sm-4">
+                <aside id="sideMenu">
+                    <div class="list-group panel">
+                        <h3 style="margin-top:0px;">Portal Links</h3>
+                        <!--<a href="#" onclick="loadGrid('news.json')" class="list-group-item list-group-item" data-parent="#sideMenu">News and Announcements</a>-->
+                        <a href="#" onclick="loadGrid('links.json')" class="list-group-item active" data-parent="#sideMenu">Links</a>
+                        <a href="#" onclick="loadGrid('events.json')" class="list-group-item" data-parent="#sideMenu">Events</a>
+                        <a href="news.html" class="list-group-item" data-parent="#sideMenu">News and Announcements</a>
+                    </div>
+                </aside>
+            </div>
+            <div class="col-md-10 col-sm-8">
+                    <div class="form-group form-inline">
+                        <label for="team"> &nbsp; Select the Team: </label>
+                        <select class="form-control" id="team">
+                            <option value="s">Team</option>
+                        </select>
+                    </div>
+                    <div id="adminContent"></div>
+                    <!--<div id="dialog-form" title="newsDescription">
+                        <form id="descriptionForm">
+                            <textarea id="newsDescription"></textarea>
+                        </form>
+                    </div>-->
+            </div>
+        </div>
+        <div id="noAccess" title="No access to the content">You don't have content admin access</div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $('#home').on('click', function (e) {
+                window.location.href = 'index.html';
+                e.preventDefault();
+            });
+            $(".list-group .list-group-item").click(function (e) {
+                $(".list-group .list-group-item").removeClass("active");
+                $(e.target).addClass("active");
+            });
+            checkUserRole();
+        });
+        function checkUserRole() {
+            $('#noAccess').dialog({
+                modal: true,
+                resizable: false,
+                autoOpen: false,
+                draggable: false,
+                buttons: [
+                     {
+                         text: "OK", type: "submit", click: function (e) {
+                             window.location.href = 'index.html';
+                         }
+                     }
+                ]
+            });
+            AjaxGetMethod("Account/User",
+             function (data) {
+                 console.log(data);
+                 if (data.Roles.length > 0) {
+                     $.each(data.Roles, function (i, e) {
+                         var roleName = e.Name;
+                         roleName = roleName.toLowerCase();
+                         if (roleName === 'content admin' || roleName === 'team admin') {
+                            if(roleName === 'content admin'){
+                                 $('#noAccess').dialog('close');
+                                 $('.container-fluid').show();
+                                 loadTeams();
+                                 loadGrid('links.json');
+                                 return false;
+                            }
+                        } else {
+                             $('#noAccess').dialog('open');
+                         }
+                     });
+                 } else {
+                     $('.container-fluid').hide();
+                     $('#noAccess').dialog('open');
+                 }
+             }, function (data) { });
+        }
+        
+        function loadTeams() {
+            AjaxGetMethod("Account/User", function (data) {
+                if(data.Groups !== undefined){
+                    if (data.Groups.length > 0) {
+                        $.each(data.Groups,function(i,e){
+                                $("#team").append("<option value='" + e.GroupId + "'>" + e.Name + "</option>");
+                        });
+                    }
+                }
+            }, function (data) { });
+            //AjaxGetMethod("Account/Groups",
+            //    function (data) {
+            //        if (data !== undefined) {
+            //            for (i in data) {
+            //                $("#team").append("<option value='" + data[i].GroupId + "'>" + data[i].Name + "</option>")
+            //            }
+            //        }
+            //        console.log(data);
+            //    }, function (data) { });
+        }
+
+       /* tinymce.init({
+            selector: 'textarea#newsDescription',
+            branding: false,
+            height: 270
+        });
+       
+            var MyDescriptionButton = function (config) {
+                jsGrid.Field.call(this, config);
+            };
+            MyDescriptionButton.prototype = new jsGrid.Field({
+
+                itemTemplate: function (value) {
+                    return $("<button>").text("Add Description").css("align", "center")
+                },
+                insertTemplate: function (value) {
+                    //return this._insertPicker = $("<input>").datepicker({ defaultDate: new Date() });
+                    return $("<button>").text("Add Description")
+                        .css("align", "center")
+                        .on("click", function () {
+                            showDescriptionDialog("Add", {});
+                            return false;
+                        });
+                },
+
+                editTemplate: function (v, i) {
+                    return $("<button>").text("Edit Description")
+                        .css("align", "center")
+                        .on("click", function () {
+                            showDescriptionDialog("Edit", { 'value': v, "item": i });
+                            return false;
+                        });
+                }
+            });*/
+            var MyDateField = function (config) {
+                jsGrid.Field.call(this, config);
+            };
+            var MyTimeField = function (config) {
+                jsGrid.Field.call(this, config);
+            };
+            MyDateField.prototype = new jsGrid.Field({
+                sorter: function (date1, date2) {
+                    return new Date(date1) - new Date(date2);
+                },
+
+                itemTemplate: function (value) {
+                    return new Date(value).toDateString();
+                },
+
+                insertTemplate: function (value) {
+                    return this._insertPicker = $("<input>").datepicker({ defaultDate: new Date() });
+                },
+
+                editTemplate: function (value) {
+                    return this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+                },
+
+                insertValue: function () {
+                    return this._insertPicker.datepicker("getDate").toString();
+                },
+
+                editValue: function () {
+                    return this._editPicker.datepicker("getDate").toString();
+                }
+            });
+            MyTimeField.prototype = new jsGrid.Field({
+
+                itemTemplate: function (value) {
+                    return new Date(value).toTimeString();
+                },
+                insertTemplate: function (value) {
+                    return this._insertPicker = $("<input>").timepicker();
+                },
+
+                editTemplate: function (value) {
+                    return this._editPicker = $("<input>").timepicker();
+                },
+                
+                insertValue: function () {
+                return this._insertPicker.timepicker("getTime");
+                },
+
+                editValue: function () {
+                    return this._editPicker.timepicker("getTime");
+                }
+            });
+            jsGrid.fields.myDateField = MyDateField;
+            jsGrid.fields.myTimeField = MyTimeField;
+            //jsGrid.fields.descriptionButton = MyDescriptionButton;
+
+            var grid = {
+                getColumnNames: function (a) {
+                    return $.ajax({
+                        url: 'js/json/' + a,
+                        dataType: 'json',
+                        data: { json: JSON.stringify() },
+                        success: function (response) {
+                            //columnsHeader(response);
+                        }
+                    });
+                }
+            }
+
+            function loadGrid(name) {
+                var columnNames = grid.getColumnNames(name);
+                var columnFields = [];
+                //columnFields.push({ items:['Item1','Item2'], name: 'ItemId', type: 'text', visible: false });
+                var formId = '';
+                var formName = '';
+              
+                columnNames.done(function (result) {
+                    var fItem = result.FormFields;
+                    formId = result.formId;
+                    formName = result.formName;
+                    for (var i = 0; i < fItem.length; i++) {
+                        if (fItem[i].items !== undefined) {
+                            columnFields.push({ name: fItem[i].name, type: fItem[i].type, items: fItem[i].items, valueField: "value", textField: "name" });
+                        }
+                        else {
+                            columnFields.push({ name: fItem[i].name, type: fItem[i].type, visible: fItem[i].visible });
+                        }
+                    }
+                    columnFields.push({
+                        type: "control"
+                    });
+                    $("#adminContent").jsGrid({
+                        height: "850px",
+                        width: "100%",
+                        inserting: true,
+                        editing: true,
+                        sorting: true,
+                        paging: false,
+                        autoload: true,
+                        noDataContent: "",
+                        onDataLoaded: function () {
+                            $(".jsgrid-cell > select").on("change", function () {                       
+                                if ($(this).val() === "header") {
+                                    $("tr.jsgrid-insert-row td:eq(2)").css({ "opacity": "0.5", "pointer-events": "none" });
+                                } else {
+                                    $("tr.jsgrid-insert-row td:eq(2)").css({ "opacity": "1", "pointer-events": "auto" });
+                                } 
+                            });
+                        },
+                        onRefreshed: function () {
+                            $(".jsgrid-cell > select").on("change", function () {
+                                if ($(this).val() === "header") {
+                                    $("tr.jsgrid-insert-row td:eq(2)").css({ "opacity": "0.5", "pointer-events": "none" });
+                                } else {
+                                    $("tr.jsgrid-insert-row td:eq(2)").css({ "opacity": "1", "pointer-events": "auto" });
+                                }
+                            });
+                            var $gridData = $('#adminContent .jsgrid-grid-body tbody');
+                            $gridData.sortable({
+                                update: function (e, ui) {
+                                    // arrays of items
+                                    var items = $.map($gridData.find("tr"), function (row) {
+                                        return $(row).data("JSGridItem");
+                                    });
+                                    console && console.log("Reordered items", items);
+                                }
+                            });
+                        },
+                        onItemInserting: function (args) {
+                            var teamId = $("#team :selected").val();
+                            if (teamId === "s") {            
+                                args.cancel = true;
+                                alert("Please select the team");
+                                return false;
+                            }
+                        },
+                        fields: columnFields,
+                        controller: {
+                            insertItem: function (item) {
+                                var teamId = $("#team :selected").val();
+                                var d = $.Deferred();
+                                var fdata = [];
+                                for (var key in item) {
+                                    fdata.push({ PropertyName: key, AnswerText: item[key] });
+                                }
+                                var formData = {
+                                    FormTemplateId: formId,
+                                    FormName: formName,
+                                    workItem: getWorkItem(formName),
+                                    team: teamId,
+                                    FieldsData: fdata,
+                                    DataAccessLevel: "GROUP",
+                                    AccessObjectId: teamId
+                                };
+                                AjaxPostMethod("Form/Data", formData, function (r) {
+                                    item.ItemId = r.FormDataInstanceId;
+                                    d.resolve(item);
+                                });
+                                return d.promise();
+                            },
+                            updateItem: function (item) {
+                                item.AccessObjectId = $("#team :selected").val();
+                                var d = $.Deferred();
+                                var fdata = [];
+                                var itemId;
+                                for (var key in item) {
+                                    if (key == 'ItemId') {
+                                        itemId = item[key];
+                                    }
+                                    else {
+                                        fdata.push({ PropertyName: key, AnswerText: item[key] });
+                                    }
+                                }
+                                var formData = {
+                                    FormTemplateId: formId,
+                                    FormName: formName,
+                                    workItem: getWorkItem(formName),
+                                    FormDataInstanceId: itemId,
+                                    FieldsData: fdata,
+                                    DataAccessLevel: item.DataAccessLevel,
+                                    AccessObjectId: item.AccessObjectId
+                                };
+                                AjaxPostMethod("Form/Data", formData, function (r) {
+                                    d.resolve(item);
+                                });
+                                return d.promise();
+                            },
+                            loadData: function (filter) {
+                                var d = $.Deferred();
+                                AjaxGetMethod(getFormDataUrl(formId, formName),
+                                    function (r) {
+                                        var items = [];
+                                        var c = 0;
+                                        for (var j in r) {
+                                            var item = {};
+                                            var keys = r[j].FieldsData;
+                                            for (var i in keys) {
+                                                item[keys[i].PropertyName] = keys[i].AnswerText;
+                                            }
+                                            item.ItemId = r[j].FormDataInstanceId;
+                                            item.AccessObjectId = r[j].AccessObjectId;
+                                            item.DataAccessLevel = r[j].DataAccessLevel;
+                                            items.push(item);
+                                            c++;
+                                        }
+                                        var feeds = { data: items, itemsCount: c };
+                                        d.resolve(items);
+                                    });
+                                return d.promise();
+                            }
+                        },
+                        onItemEditing: function (item) {
+                            $("#team").find('option:selected').removeAttr("selected");
+                            $("#team option[value='" + item.item.AccessObjectId + "']").attr('selected', 'selected');
+                        },
+                        deleteConfirm: function (deletingItem) {
+                            var d = $.Deferred();
+                            var itemId = deletingItem.ItemId;
+                            var url = "Form/Data?instanceId=" + itemId + "&formId=" + formId + "&workItem=" + getWorkItem(formName);
+                            AjaxDeleteMethod(url, function (data) {
+                                return "The \"" + deletingItem.Name + "\" will be removed. Are you sure?";
+                            },
+                            function (e) {
+                                console.log(e);
+                                alert("Error deleting data");
+                            });
+                        }
+                       
+                    });
+                    function getWorkItem(t) {
+                        workItem =t + '_' + "Role";
+                        return workItem;
+                    }
+                    function getFormDataUrl(id,t) {
+                        return "Form/Data?formId=" + id + "&workItem=" + getWorkItem(t);
+                    }
+                    //changes the style of the "+" icon button
+                    $("#adminContent .jsgrid-header-row  th.jsgrid-control-field input.jsgrid-button").removeClass("jsgrid-mode-button").addClass("jsgrid-insert-button");
+                });
+            }
+    </script>
+</body>
+</html>
+
+
